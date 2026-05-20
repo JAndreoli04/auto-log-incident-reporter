@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Incident Timeline Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        critical: '#dc2626',
+                        'critical-glow': '#fee2e2',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .critical-glow {
+            box-shadow: inset 0 0 20px rgba(220, 38, 38, 0.3), 0 0 15px rgba(220, 38, 38, 0.2);
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 23px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #e5e7eb;
+        }
+        .timeline-item {
+            position: relative;
+            padding-left: 60px;
+            margin-bottom: 20px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 6px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid #e5e7eb;
+            background-color: white;
+        }
+        .timeline-item.critical::before {
+            background-color: #dc2626;
+            border-color: #991b1b;
+        }
+        .timeline-item.high::before {
+            background-color: #f59e0b;
+            border-color: #b45309;
+        }
+        .timeline-item.low::before,
+        .timeline-item.info::before {
+            background-color: #10b981;
+            border-color: #047857;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="max-w-6xl mx-auto">
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900">Security Incident Timeline</h1>
+                <p class="text-gray-600 mt-2">Chronological analysis of security events and detected threats</p>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="text-sm font-medium text-gray-600">Total Events</div>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-3xl font-bold text-gray-900">37</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="text-sm font-medium text-gray-600">Failed Logins</div>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-3xl font-bold text-orange-600">16</span>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="text-sm font-medium text-gray-600">Critical Alerts</div>
+                    <div class="mt-2 flex items-baseline">
+                        <span class="text-3xl font-bold text-red-600">1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="bg-white rounded-lg shadow p-4 mb-8">
+                <div class="flex flex-wrap gap-2">
+                    <button class="filter-btn px-4 py-2 rounded-lg font-medium transition-colors" data-filter="all" onclick="filterEvents('all')">
+                        Show All (37)
+                    </button>
+                    <button class="filter-btn px-4 py-2 rounded-lg font-medium transition-colors" data-filter="alerts" onclick="filterEvents('alerts')">
+                        Alerts Only (3)
+                    </button>
+                    <button class="filter-btn px-4 py-2 rounded-lg font-medium transition-colors" data-filter="high-critical" onclick="filterEvents('high-critical')">
+                        High/Critical (5)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="bg-white rounded-lg shadow p-8">
+                <div class="timeline" id="timeline">
+                    <!-- Events will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Event data embedded from server
+        const allEvents = [{"timestamp": "2026-05-20T08:15:23", "source_ip": "8.8.8.8", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'admin' from 8.8.8.8:54321", "metadata": {"user": "admin", "port": "54321", "country": "United States", "city": "Ashburn", "isp": "Google LLC"}}, {"timestamp": "2026-05-20T08:16:01", "source_ip": "192.168.1.50", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'user1' from 192.168.1.50:45678", "metadata": {"user": "user1", "port": "45678", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T08:17:45", "source_ip": "1.1.1.1", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'user1' from 1.1.1.1:12345", "metadata": {"user": "user1", "port": "12345", "country": "Australia", "city": "South Brisbane", "isp": "Cloudflare, Inc"}}, {"timestamp": "2026-05-20T08:19:12", "source_ip": "198.51.100.10", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'ubuntu' from 198.51.100.10:33456", "metadata": {"user": "ubuntu", "port": "33456", "country": "Romania", "city": "Bucharest", "isp": "TEST-NET-2"}}, {"timestamp": "2026-05-20T08:20:34", "source_ip": "192.168.1.55", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'user2' from 192.168.1.55:44455", "metadata": {"user": "user2", "port": "44455", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T08:22:56", "source_ip": "8.8.4.4", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'deploy' from 8.8.4.4:22000", "metadata": {"user": "deploy", "port": "22000", "country": "United States", "city": "Ashburn", "isp": "Google LLC"}}, {"timestamp": "2026-05-20T08:45:10", "source_ip": "72.14.207.99", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'alice' from 72.14.207.99:50123", "metadata": {"user": "alice", "port": "50123", "country": "United States", "city": "Mountain View", "isp": "Google LLC"}}, {"timestamp": "2026-05-20T08:57:45", "source_ip": "211.198.112.30", "destination_ip": null, "event_type": "ALERT_IMPOSSIBLE_TRAVEL", "severity": "HIGH", "description": "Impossible travel detected: User 'alice' logged in from United States (72.14.207.99) at 2026-05-20T08:45:10, then from South Korea (211.198.112.30) at 2026-05-20T08:57:45 (only 755 seconds apart)", "metadata": {"user": "alice", "prev_country": "United States", "prev_ip": "72.14.207.99", "curr_country": "South Korea", "curr_ip": "211.198.112.30", "time_delta_seconds": 755.0}}, {"timestamp": "2026-05-20T08:57:45", "source_ip": "211.198.112.30", "destination_ip": null, "event_type": "ALERT_IMPOSSIBLE_TRAVEL", "severity": "HIGH", "description": "Impossible travel detected: User 'alice' logged in from United States (72.14.207.99) at 2026-05-20T08:45:10, then from South Korea (211.198.112.30) at 2026-05-20T08:57:45 (only 755 seconds apart)", "metadata": {"user": "alice", "prev_country": "United States", "prev_ip": "72.14.207.99", "curr_country": "South Korea", "curr_ip": "211.198.112.30", "time_delta_seconds": 755.0}}, {"timestamp": "2026-05-20T08:57:45", "source_ip": "211.198.112.30", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "HIGH", "description": "Successful SSH login attempt for user 'alice' from 211.198.112.30:50124", "metadata": {"user": "alice", "port": "50124", "country": "South Korea", "city": "Seongnam-si", "isp": "Korea Telecom"}}, {"timestamp": "2026-05-20T09:12:33", "source_ip": "203.0.113.100", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'jenkins' from 203.0.113.100:8822", "metadata": {"user": "jenkins", "port": "8822", "country": "United States", "city": "New York", "isp": "TEST-NET-3"}}, {"timestamp": "2026-05-20T09:15:02", "source_ip": "192.168.1.100", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'root' from 192.168.1.100:54001", "metadata": {"user": "root", "port": "54001", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T09:15:07", "source_ip": "192.168.1.100", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'root' from 192.168.1.100:54002", "metadata": {"user": "root", "port": "54002", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T09:15:12", "source_ip": "192.168.1.100", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'root' from 192.168.1.100:54003", "metadata": {"user": "root", "port": "54003", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T09:15:18", "source_ip": "192.168.1.100", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'root' from 192.168.1.100:54004", "metadata": {"user": "root", "port": "54004", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T09:15:23", "source_ip": "192.168.1.100", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'root' from 192.168.1.100:54005", "metadata": {"user": "root", "port": "54005", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T09:15:29", "source_ip": "192.168.1.100", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'root' from 192.168.1.100:54006", "metadata": {"user": "root", "port": "54006", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T09:15:34", "source_ip": "192.168.1.100", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'root' from 192.168.1.100:54007", "metadata": {"user": "root", "port": "54007", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T09:15:40", "source_ip": "192.168.1.100", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'root' from 192.168.1.100:54008", "metadata": {"user": "root", "port": "54008", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T09:15:45", "source_ip": "192.168.1.100", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'root' from 192.168.1.100:54009", "metadata": {"user": "root", "port": "54009", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T09:15:51", "source_ip": "192.168.1.100", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "HIGH", "description": "Successful SSH login attempt for user 'root' from 192.168.1.100:54010", "metadata": {"user": "root", "port": "54010", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T09:15:51", "source_ip": "192.168.1.100", "destination_ip": null, "event_type": "ALERT_BRUTE_FORCE_SUCCESS", "severity": "CRITICAL", "description": "Brute force attack succeeded: 9 failed login attempts from 192.168.1.100 followed by successful login for 'root'", "metadata": {"failure_count": 9, "success_user": "root", "source_ip": "192.168.1.100"}}, {"timestamp": "2026-05-20T09:30:15", "source_ip": "198.51.100.22", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'user3' from 198.51.100.22:40000", "metadata": {"user": "user3", "port": "40000", "country": "Romania", "city": "Bucharest", "isp": "TEST-NET-2"}}, {"timestamp": "2026-05-20T09:45:22", "source_ip": "203.0.113.88", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'testuser' from 203.0.113.88:35000", "metadata": {"user": "testuser", "port": "35000", "country": "United States", "city": "New York", "isp": "TEST-NET-3"}}, {"timestamp": "2026-05-20T10:01:05", "source_ip": "203.0.113.200", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'monitor' from 203.0.113.200:9999", "metadata": {"user": "monitor", "port": "9999", "country": "United States", "city": "New York", "isp": "TEST-NET-3"}}, {"timestamp": "2026-05-20T10:15:33", "source_ip": "192.168.1.60", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'user4' from 192.168.1.60:55555", "metadata": {"user": "user4", "port": "55555", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T10:20:44", "source_ip": "198.51.100.30", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'sync' from 198.51.100.30:11111", "metadata": {"user": "sync", "port": "11111", "country": "Romania", "city": "Bucharest", "isp": "TEST-NET-2"}}, {"timestamp": "2026-05-20T10:25:18", "source_ip": "203.0.113.15", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'backup' from 203.0.113.15:22", "metadata": {"user": "backup", "port": "22", "country": "United States", "city": "New York", "isp": "TEST-NET-3"}}, {"timestamp": "2026-05-20T10:55:45", "source_ip": "192.168.1.200", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'hacker' from 192.168.1.200:12000", "metadata": {"user": "hacker", "port": "12000", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T12:01:22", "source_ip": "198.51.100.60", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'service' from 198.51.100.60:18888", "metadata": {"user": "service", "port": "18888", "country": "Romania", "city": "Bucharest", "isp": "TEST-NET-2"}}, {"timestamp": "2026-05-20T12:08:19", "source_ip": "203.0.113.40", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'user6' from 203.0.113.40:8822", "metadata": {"user": "user6", "port": "8822", "country": "United States", "city": "New York", "isp": "TEST-NET-3"}}, {"timestamp": "2026-05-20T12:25:34", "source_ip": "192.168.1.80", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'user7' from 192.168.1.80:49999", "metadata": {"user": "user7", "port": "49999", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T12:35:11", "source_ip": "203.0.113.50", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'user8' from 203.0.113.50:6666", "metadata": {"user": "user8", "port": "6666", "country": "United States", "city": "New York", "isp": "TEST-NET-3"}}, {"timestamp": "2026-05-20T12:45:20", "source_ip": "198.51.100.70", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'user9' from 198.51.100.70:7777", "metadata": {"user": "user9", "port": "7777", "country": "Romania", "city": "Bucharest", "isp": "TEST-NET-2"}}, {"timestamp": "2026-05-20T12:55:09", "source_ip": "192.168.1.150", "destination_ip": null, "event_type": "AUTH_FAILURE", "severity": "INFO", "description": "Failed SSH login attempt for user 'testadmin' from 192.168.1.150:11111", "metadata": {"user": "testadmin", "port": "11111", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}, {"timestamp": "2026-05-20T13:05:45", "source_ip": "203.0.113.60", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'user10' from 203.0.113.60:9000", "metadata": {"user": "user10", "port": "9000", "country": "United States", "city": "New York", "isp": "TEST-NET-3"}}, {"timestamp": "2026-05-20T13:22:18", "source_ip": "192.0.2.200", "destination_ip": null, "event_type": "AUTH_SUCCESS", "severity": "LOW", "description": "Successful SSH login attempt for user 'alice' from 192.0.2.200:50789", "metadata": {"user": "alice", "port": "50789", "country": "Unknown", "city": "Unknown", "isp": "Unknown"}}];
+        let currentFilter = 'all';
+
+        // Initialize timeline on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTimeline(allEvents);
+            updateFilterButtons('all');
+        });
+
+        function filterEvents(filter) {
+            currentFilter = filter;
+            updateFilterButtons(filter);
+            
+            let filtered = allEvents;
+            if (filter === 'alerts') {
+                filtered = allEvents.filter(e => e.event_type.startsWith('ALERT_'));
+            } else if (filter === 'high-critical') {
+                filtered = allEvents.filter(e => ['HIGH', 'CRITICAL'].includes(e.severity));
+            }
+            
+            renderTimeline(filtered);
+        }
+
+        function updateFilterButtons(activeFilter) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                const isActive = btn.getAttribute('data-filter') === activeFilter;
+                if (isActive) {
+                    btn.classList.add('bg-blue-600', 'text-white');
+                    btn.classList.remove('bg-gray-200', 'text-gray-900');
+                } else {
+                    btn.classList.remove('bg-blue-600', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-900');
+                }
+            });
+        }
+
+        function renderTimeline(events) {
+            const timeline = document.getElementById('timeline');
+            timeline.innerHTML = '';
+
+            if (events.length === 0) {
+                timeline.innerHTML = '<div class="text-center py-8 text-gray-500">No events to display</div>';
+                return;
+            }
+
+            events.forEach((event, idx) => {
+                const card = createEventCard(event, idx);
+                timeline.appendChild(card);
+            });
+        }
+
+        function createEventCard(event, idx) {
+            const severityClass = event.severity.toLowerCase();
+            const timelineItem = document.createElement('div');
+            timelineItem.className = `timeline-item ${severityClass}`;
+            timelineItem.id = `event-${idx}`;
+
+            const bgClass = getBgClass(event.severity);
+            const borderClass = getBorderClass(event.severity);
+            const badgeClass = getBadgeClass(event.severity);
+
+            const timestamp = new Date(event.timestamp);
+            const timeStr = timestamp.toLocaleString();
+
+            let extraInfo = '';
+            if (event.metadata && event.metadata.user) {
+                extraInfo += `<p class="text-sm text-gray-600"><strong>User:</strong> ${escapeHtml(event.metadata.user)}</p>`;
+            }
+            if (event.metadata && event.metadata.country) {
+                extraInfo += `<p class="text-sm text-gray-600"><strong>Location:</strong> ${escapeHtml(event.metadata.city || 'N/A')}, ${escapeHtml(event.metadata.country)}</p>`;
+            }
+            if (event.metadata && event.metadata.isp) {
+                extraInfo += `<p class="text-sm text-gray-600"><strong>ISP:</strong> ${escapeHtml(event.metadata.isp)}</p>`;
+            }
+
+            const eventTypeLabel = event.event_type.replace(/_/g, ' ');
+
+            timelineItem.innerHTML = `
+                <div class="bg-white rounded-lg p-4 ${borderClass} ${bgClass}" onclick="toggleCard(this)">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="${badgeClass} px-2 py-1 rounded text-xs font-semibold">${event.severity}</span>
+                                <span class="text-sm text-gray-500 font-mono">${event.event_type}</span>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">${timeStr}</p>
+                            <p class="text-sm text-gray-700 mt-2">${escapeHtml(event.description)}</p>
+                            <div class="mt-3 hidden event-details">
+                                ${extraInfo}
+                                <p class="text-xs text-gray-500 mt-2"><strong>Source IP:</strong> <span class="font-mono">${escapeHtml(event.source_ip)}</span></p>
+                            </div>
+                        </div>
+                        <span class="text-gray-400 ml-2 toggle-icon">▼</span>
+                    </div>
+                </div>
+            `;
+
+            return timelineItem;
+        }
+
+        function toggleCard(element) {
+            const details = element.querySelector('.event-details');
+            const icon = element.querySelector('.toggle-icon');
+            
+            details.classList.toggle('hidden');
+            icon.textContent = details.classList.contains('hidden') ? '▼' : '▲';
+        }
+
+        function getBgClass(severity) {
+            switch(severity.toUpperCase()) {
+                case 'CRITICAL':
+                    return 'border-l-4 border-red-600 bg-red-50 critical-glow';
+                case 'HIGH':
+                    return 'border-l-4 border-amber-500 bg-amber-50';
+                case 'MEDIUM':
+                    return 'border-l-4 border-yellow-400 bg-yellow-50';
+                case 'LOW':
+                case 'INFO':
+                    return 'border-l-4 border-gray-300 bg-gray-50';
+                default:
+                    return 'border-l-4 border-gray-300';
+            }
+        }
+
+        function getBorderClass(severity) {
+            switch(severity.toUpperCase()) {
+                case 'CRITICAL':
+                    return 'border-2 border-red-600';
+                case 'HIGH':
+                    return 'border-2 border-amber-500';
+                case 'MEDIUM':
+                    return 'border border-yellow-400';
+                case 'LOW':
+                case 'INFO':
+                    return 'border border-gray-200';
+                default:
+                    return 'border border-gray-200';
+            }
+        }
+
+        function getBadgeClass(severity) {
+            switch(severity.toUpperCase()) {
+                case 'CRITICAL':
+                    return 'bg-red-600 text-white';
+                case 'HIGH':
+                    return 'bg-amber-500 text-white';
+                case 'MEDIUM':
+                    return 'bg-yellow-400 text-gray-900';
+                case 'LOW':
+                case 'INFO':
+                    return 'bg-green-500 text-white';
+                default:
+                    return 'bg-gray-500 text-white';
+            }
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+    </script>
+</body>
+</html>
