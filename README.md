@@ -2,6 +2,9 @@
 
 A Python-based CLI tool that ingests security logs (Linux auth.log, with extensible support for Nginx and libpcap), detects attack patterns using sophisticated heuristics, and generates beautiful interactive HTML timeline reports.
 
+<img width="3406" height="1874" alt="image" src="https://github.com/user-attachments/assets/63480c3e-9789-4e57-baad-9c034d32860a" />
+
+
 ## The Concept
 
 Instead of manually scrolling through thousands of raw log lines, this tool ingests a raw firewall, server, or Windows Event log file, parses out indicators of compromise (IoCs), and outputs a beautiful interactive HTML timeline of the incident.
