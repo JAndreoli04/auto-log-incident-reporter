@@ -4,11 +4,7 @@ A Python-based CLI tool that ingests security logs (Linux auth.log, with extensi
 
 ## The Concept
 
-Instead of manually scrolling through thousands of raw log lines, this tool:
-1. **Parses** structured security events from various log formats
-2. **Detects** sophisticated attack patterns (brute force, impossible travel)
-3. **Enriches** events with geolocation metadata
-4. **Visualizes** the entire incident timeline in an interactive HTML dashboard
+Instead of manually scrolling through thousands of raw log lines, this tool ingests a raw firewall, server, or Windows Event log file, parses out indicators of compromise (IoCs), and outputs a beautiful interactive HTML timeline of the incident.
 
 Perfect for **incident response analysts, security engineers, and blue teamers** who need to quickly understand the attack chain and timeline of compromise.
 
@@ -190,7 +186,7 @@ auto-log-incident-report/
 ├── analyzer.py                    # CLI entry point
 ├── requirements.txt               # Python dependencies
 ├── README.md                      # This file
-├── AGENTS.md                      # Detailed specifications
+specifications
 │
 ├── core/
 │   ├── __init__.py
@@ -209,7 +205,7 @@ auto-log-incident-report/
     └── output_timeline.html      # Default output location
 ```
 
-## How It Works: Step-by-Step
+## How It Works
 
 1. **Parse** (`core/parsers.py`):
    - Reads log file line-by-line
